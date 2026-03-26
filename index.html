@@ -189,7 +189,7 @@ label {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
-  max-width: 640px;
+  max-width: 820px;
   margin-top: 4rem;
 }
 
@@ -288,7 +288,7 @@ label {
 /* Main editor area */
 .editor-main {
   padding: 2.5rem;
-  max-width: 860px;
+  max-width: 1100px;
   margin: 0 auto;
   width: 100%;
 }
@@ -339,27 +339,6 @@ label {
   font-size: 0.65rem;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-}
-
-/* AI assist bar */
-.ai-bar {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 0.75rem 1rem;
-  display: flex; align-items: center; gap: 0.75rem;
-  margin-bottom: 1.25rem;
-  flex-wrap: wrap;
-}
-
-.ai-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--accent);
-  white-space: nowrap;
-  display: flex; align-items: center; gap: 0.4rem;
 }
 
 /* Flashcard editor items */
@@ -512,7 +491,7 @@ label {
 #page-player { display: none; }
 
 .player-wrap {
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 2.5rem 1.5rem 5rem;
 }
@@ -575,8 +554,6 @@ label {
   font-size: 0.97rem;
   color: var(--ink2);
   margin-bottom: 1.5rem;
-  max-height: 500px;
-  overflow-y: auto;
 }
 
 .read-body h2 {
@@ -894,9 +871,10 @@ label {
       <div class="editor-header">
         <div>
           <div class="editor-title">Build your Flow</div>
-          <div class="editor-subtitle">Fill in each section — AI can help generate content from your material</div>
+          <div class="editor-subtitle">Fill in each section — add your reading material, flashcards and quiz questions</div>
         </div>
         <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="goHome()">← Home</button>
           <button class="btn btn-ghost btn-sm" onclick="previewFlow()">👁 Preview</button>
           <button class="btn btn-primary btn-sm" onclick="openShareModal()">🔗 Share</button>
         </div>
@@ -932,12 +910,6 @@ label {
           <span style="font-size:0.75rem;color:var(--muted)">Students read this first</span>
         </div>
         <div class="panel-body">
-          <div class="ai-bar">
-            <span class="ai-label">✦ AI Assist</span>
-            <textarea id="ai-source-read" placeholder="Paste source material or describe your topic — AI will generate the reading content…" style="flex:1;min-height:50px;font-size:0.82rem;"></textarea>
-            <button class="btn btn-primary btn-sm" id="btn-ai-read" onclick="aiGenRead()">Generate</button>
-          </div>
-
           <div class="field">
             <label>Reading Content *</label>
             <textarea id="c-material" placeholder="Write your reading material here. Use ## for headings, backticks for `code`." style="min-height:240px;font-family:'Instrument Sans',sans-serif;line-height:1.75"></textarea>
@@ -956,11 +928,6 @@ label {
           <button class="btn btn-ghost btn-sm" onclick="addFcCard()">+ Add Card</button>
         </div>
         <div class="panel-body">
-          <div class="ai-bar">
-            <span class="ai-label">✦ AI Assist</span>
-            <span style="font-size:0.78rem;color:var(--muted);flex:1">Generate cards from your reading material above</span>
-            <button class="btn btn-primary btn-sm" id="btn-ai-fc" onclick="aiGenCards()">Generate Cards</button>
-          </div>
           <div class="fc-list" id="fc-editor-list"></div>
           <button class="btn btn-ghost btn-sm" onclick="addFcCard()" style="margin-top:0.75rem;width:100%;justify-content:center">+ Add Flashcard</button>
         </div>
@@ -973,11 +940,6 @@ label {
           <button class="btn btn-ghost btn-sm" onclick="addQuestion()">+ Add Question</button>
         </div>
         <div class="panel-body">
-          <div class="ai-bar">
-            <span class="ai-label">✦ AI Assist</span>
-            <span style="font-size:0.78rem;color:var(--muted);flex:1">Generate questions from your reading material</span>
-            <button class="btn btn-primary btn-sm" id="btn-ai-quiz" onclick="aiGenQuiz()">Generate Quiz</button>
-          </div>
           <div class="q-list" id="q-editor-list"></div>
           <button class="btn btn-ghost btn-sm" onclick="addQuestion()" style="margin-top:0.75rem;width:100%;justify-content:center">+ Add Question</button>
         </div>
@@ -1019,7 +981,10 @@ label {
 <div id="page-player">
   <div class="player-wrap">
     <div class="player-header">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:0.5rem" id="pl-subject"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:2px" id="pl-subject"></div>
+        <button class="btn btn-ghost btn-sm" onclick="goHome()" style="font-size:0.75rem;">← Home</button>
+      </div>
       <div class="player-topic" id="pl-topic">Loading…</div>
       <div class="player-author" id="pl-author"></div>
     </div>
@@ -1573,101 +1538,6 @@ function updateQCorrect(i, j) {
     const row = document.getElementById(`qopt-row-${i}-${k}`);
     if (row) row.className = 'option-row' + (k===j?' correct-row':'');
   });
-}
-
-// ═══════════════════════════════════════════
-//  AI ASSIST
-// ═══════════════════════════════════════════
-async function callClaude(system, user) {
-  const r = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system,
-      messages: [{ role: 'user', content: user }]
-    })
-  });
-  const d = await r.json();
-  if (d.error) throw new Error(d.error.message);
-  return d.content.map(b => b.text||'').join('');
-}
-
-async function aiGenRead() {
-  const src = document.getElementById('ai-source-read').value.trim();
-  const topic = document.getElementById('c-topic').value.trim() || 'the topic';
-  if (!src) { toast('Paste some source material or describe your topic first.', 'error'); return; }
-  const btn = document.getElementById('btn-ai-read');
-  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
-  try {
-    const raw = await callClaude(
-      'You are a study material writer. Return ONLY valid JSON, no markdown.',
-      `Topic: "${topic}"\nSource: ${src}\n\nReturn JSON: {"material":"400-600 word explanation with ## subheadings and backtick code terms","concepts":["concept1","concept2","concept3","concept4","concept5"]}`
-    );
-    const d = JSON.parse(raw.replace(/```json|```/g,'').trim());
-    const mat = d.material || '';
-    const cons = (d.concepts || []).join(', ');
-    document.getElementById('c-material').value = mat;
-    document.getElementById('c-concepts').value = cons;
-    editorData.material = mat;
-    editorData.concepts = cons;
-    toast('Reading material generated!', 'success');
-  } catch(e) { toast('AI error: ' + e.message, 'error'); }
-  btn.disabled = false; btn.innerHTML = 'Generate';
-}
-
-async function aiGenCards() {
-  const mat = document.getElementById('c-material').value.trim();
-  const topic = document.getElementById('c-topic').value.trim() || 'the topic';
-  if (!mat) { toast('Add reading material first so AI has content to generate from.', 'error'); return; }
-  if (editorData.flashcards.some(c => c.q || c.a)) {
-    if (!confirm('This will replace your existing flashcards. Continue?')) return;
-  }
-  const btn = document.getElementById('btn-ai-fc');
-  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
-  try {
-    const raw = await callClaude(
-      'You are a flashcard creator. Return ONLY valid JSON, no markdown.',
-      `Topic: "${topic}"\nMaterial: ${mat}\n\nCreate 8-10 flashcards. Return JSON array: [{"q":"question","a":"answer 1-2 sentences","hint":"category word"},...]`
-    );
-    const cards = JSON.parse(raw.replace(/```json|```/g,'').trim());
-    if (!Array.isArray(cards)) throw new Error('AI returned unexpected format. Try again.');
-    editorData.flashcards = cards.filter(c => c && c.q && c.a); // drop malformed items
-    renderFcList(); syncCounts();
-    toast(`Generated ${editorData.flashcards.length} flashcards!`, 'success');
-  } catch(e) { toast('AI error: ' + e.message, 'error'); }
-  btn.disabled = false; btn.innerHTML = 'Generate Cards';
-}
-
-async function aiGenQuiz() {
-  const mat = document.getElementById('c-material').value.trim();
-  const topic = document.getElementById('c-topic').value.trim() || 'the topic';
-  if (!mat) { toast('Add reading material first.', 'error'); return; }
-  if (editorData.questions.some(q => q.q)) {
-    if (!confirm('This will replace your existing quiz questions. Continue?')) return;
-  }
-  const btn = document.getElementById('btn-ai-quiz');
-  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
-  try {
-    const raw = await callClaude(
-      'You are a quiz maker. Return ONLY valid JSON, no markdown.',
-      `Topic: "${topic}"\nMaterial: ${mat}\n\nCreate 6-8 multiple choice questions. Return JSON array: [{"q":"question","options":["A) option","B) option","C) option","D) option"],"correct":0,"explanation":"why correct"},...]`
-    );
-    const qs = JSON.parse(raw.replace(/```json|```/g,'').trim());
-    if (!Array.isArray(qs)) throw new Error('AI returned unexpected format. Try again.');
-    // normalise options (strip A) prefix) and coerce correct to Number
-    editorData.questions = qs
-      .filter(q => q && q.q && Array.isArray(q.options))
-      .map(q => ({
-        ...q,
-        correct: Number(q.correct) || 0,
-        options: q.options.map(o => String(o).replace(/^[A-D]\)\s*/,''))
-      }));
-    renderQList(); syncCounts();
-    toast(`Generated ${editorData.questions.length} questions!`, 'success');
-  } catch(e) { toast('AI error: ' + e.message, 'error'); }
-  btn.disabled = false; btn.innerHTML = 'Generate Quiz';
 }
 
 // ═══════════════════════════════════════════
