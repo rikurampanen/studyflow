@@ -2210,11 +2210,16 @@ function downloadScorecard() {
   ctx.font = '500 13px sans-serif';
   ctx.fillText(date, 32, 450);
 
-  // Site URL bottom-right
+  // Flow URL bottom-right — use the actual current page URL (includes #id= or #flow=)
+  const flowUrl = location.href;
+  ctx.fillStyle = '#6a697e';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('FLOW', W - 32, 433);
   ctx.fillStyle = '#3a3a48';
   ctx.font = '11px monospace';
-  ctx.textAlign = 'right';
-  ctx.fillText('rikurampanen.github.io/studyflow', W - 32, 450);
+  // Truncate URL if too long for the card
+  ctx.fillText(fitText(flowUrl, 480), W - 32, 450);
   ctx.textAlign = 'left';
 
   // Download with safe filename
